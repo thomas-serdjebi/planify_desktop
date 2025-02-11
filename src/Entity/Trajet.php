@@ -6,6 +6,7 @@ use App\Repository\TrajetRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+#[ApiResource]
 #[ORM\Entity(repositoryClass: TrajetRepository::class)]
 class Trajet
 {

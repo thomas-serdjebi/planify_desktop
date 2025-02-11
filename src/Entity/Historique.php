@@ -6,6 +6,7 @@ use App\Repository\HistoriqueRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
+#[ApiResource]
 #[ORM\Entity(repositoryClass: HistoriqueRepository::class)]
 class Historique
 {
