@@ -39,12 +39,19 @@ class Tournee
     #[ORM\OneToMany(targetEntity: Trajet::class, mappedBy: 'tournee')]
     private Collection $trajets;
 
+    /**
+     * @var Collection<int, Livraison>
+     */
+    #[ORM\OneToMany(targetEntity: Livraison::class, mappedBy: 'tournee', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $livraisons;
+
     #[ORM\Column(length: 1)]
     private ?string $creneau = null;
 
     public function __construct()
     {
         $this->trajets = new ArrayCollection();
+        $this->livraisons = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -60,7 +67,6 @@ class Tournee
     public function setDate(\DateTimeInterface $date): static
     {
         $this->date = $date;
-
         return $this;
     }
 
@@ -72,7 +78,6 @@ class Tournee
     public function setDuree(\DateTimeInterface $duree): static
     {
         $this->duree = $duree;
-
         return $this;
     }
 
@@ -84,7 +89,6 @@ class Tournee
     public function setDistance(float $distance): static
     {
         $this->distance = $distance;
-
         return $this;
     }
 
@@ -96,7 +100,6 @@ class Tournee
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
-
         return $this;
     }
 
@@ -108,7 +111,6 @@ class Tournee
     public function setLivreur(?User $livreur): static
     {
         $this->livreur = $livreur;
-
         return $this;
     }
 
@@ -126,19 +128,43 @@ class Tournee
             $this->trajets->add($trajet);
             $trajet->setTournee($this);
         }
-
         return $this;
     }
 
     public function removeTrajet(Trajet $trajet): static
     {
         if ($this->trajets->removeElement($trajet)) {
-            // set the owning side to null (unless already changed)
             if ($trajet->getTournee() === $this) {
                 $trajet->setTournee(null);
             }
         }
+        return $this;
+    }
 
+    /**
+     * @return Collection<int, Livraison>
+     */
+    public function getLivraisons(): Collection
+    {
+        return $this->livraisons;
+    }
+
+    public function addLivraison(Livraison $livraison): static
+    {
+        if (!$this->livraisons->contains($livraison)) {
+            $this->livraisons->add($livraison);
+            $livraison->setTournee($this);
+        }
+        return $this;
+    }
+
+    public function removeLivraison(Livraison $livraison): static
+    {
+        if ($this->livraisons->removeElement($livraison)) {
+            if ($livraison->getTournee() === $this) {
+                $livraison->setTournee(null);
+            }
+        }
         return $this;
     }
 
@@ -150,7 +176,6 @@ class Tournee
     public function setCreneau(string $creneau): static
     {
         $this->creneau = $creneau;
-
         return $this;
     }
 }

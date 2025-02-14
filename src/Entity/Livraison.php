@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource; 
+use App\Entity\Tournee;
 
 #[ApiResource]
 #[ORM\Entity(repositoryClass: LivraisonRepository::class)]
@@ -53,6 +54,10 @@ class Livraison
 
     #[ORM\OneToOne(inversedBy: 'livraison', cascade: ['persist', 'remove'])]
     private ?Trajet $trajet = null;
+
+    #[ORM\ManyToOne(targetEntity: Tournee::class, inversedBy: "livraisons", fetch: 'EAGER')]
+    #[ORM\JoinColumn(nullable: false, onDelete: "CASCADE")]
+    private ?Tournee $tournee = null;
 
     /**
      * @var Collection<int, Historique>
@@ -210,6 +215,18 @@ class Livraison
     public function setTrajet(?Trajet $trajet): static
     {
         $this->trajet = $trajet;
+
+        return $this;
+    }
+
+    public function getTournee(): ?Tournee
+    {
+        return $this->tournee;
+    }
+
+    public function setTournee(?Tournee $tournee): static
+    {
+        $this->tournee = $tournee;
 
         return $this;
     }
