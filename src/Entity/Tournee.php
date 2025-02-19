@@ -7,7 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
 
+#[ApiResource]
 #[ORM\Entity(repositoryClass: TourneeRepository::class)]
 class Tournee
 {
@@ -30,12 +32,19 @@ class Tournee
 
     #[ORM\ManyToOne(inversedBy: 'tournees')]
     private ?User $livreur = null;
+    
 
     /**
      * @var Collection<int, Trajet>
      */
     #[ORM\OneToMany(targetEntity: Trajet::class, mappedBy: 'tournee')]
     private Collection $trajets;
+    
+    /**
+     * @var Collection<int, Livraison>
+     */
+    #[ORM\OneToMany(targetEntity: Livraison::class, mappedBy: 'tournee', cascade: ['persist', 'remove'])]
+    private Collection $livraisons;
 
     #[ORM\Column(length: 1)]
     private ?string $creneau = null;
@@ -43,6 +52,7 @@ class Tournee
     public function __construct()
     {
         $this->trajets = new ArrayCollection();
+        $this->livraisons = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -148,6 +158,37 @@ class Tournee
     public function setCreneau(string $creneau): static
     {
         $this->creneau = $creneau;
+
+        return $this;
+    }
+
+
+    /**
+     * @return Collection<int, Livraison>
+     */
+    public function getLivraisons(): Collection
+    {
+        return $this->livraisons;
+    }
+
+    public function addLivraison(Livraison $livraison): static
+    {
+        if (!$this->livraisons->contains($livraison)) {
+            $this->livraisons->add($livraison);
+            $livraison->setTournee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLivraison(Livraison $livraison): static
+    {
+        if ($this->livraisons->removeElement($livraison)) {
+            // set the owning side to null (unless already changed)
+            if ($livraison->getTournee() === $this) {
+                $livraison->setTournee(null);
+            }
+        }
 
         return $this;
     }

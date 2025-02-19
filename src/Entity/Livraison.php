@@ -7,7 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
 
+#[ApiResource]
 #[ORM\Entity(repositoryClass: LivraisonRepository::class)]
 class Livraison
 {
@@ -57,6 +59,10 @@ class Livraison
      */
     #[ORM\OneToMany(targetEntity: Historique::class, mappedBy: 'livraison', orphanRemoval: true)]
     private Collection $historiques;
+
+    #[ORM\ManyToOne(targetEntity: Tournee::class, inversedBy: 'livraisons')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Tournee $tournee = null;
 
     public function __construct()
     {
@@ -240,5 +246,69 @@ class Livraison
         }
 
         return $this;
+    }
+
+    public function getTournee(): ?Tournee
+    {
+        return $this->tournee;
+    }
+
+    public function setTournee(?Tournee $tournee): static
+    {
+        $this->tournee = $tournee;
+
+        return $this;
+    }
+
+    #[ORM\Column(type: "float", nullable: true)]
+    private ?float $latitude = null;
+
+    #[ORM\Column(type: "float", nullable: true)]
+    private ?float $longitude = null;
+
+    public function getLatitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(?float $latitude): static
+    {
+        $this->latitude = $latitude;
+        return $this;
+    }
+
+    public function getLongitude(): ?float
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(?float $longitude): static
+    {
+        $this->longitude = $longitude;
+        return $this;
+    }
+
+
+    public function enregistrerHistorique(string $evenement): Historique
+    {
+        $historique = new Historique();
+        $historique->setLivraison($this);
+        $historique->setDateEnregistrement(new \DateTime());
+        $historique->setEvenement($evenement);
+        $historique->setNumero($this->getNumero());
+        $historique->setAdresse($this->getAdresse());
+        $historique->setCodePostal($this->getCodePostal());
+        $historique->setVille($this->getVille());
+        $historique->setClientNom($this->getClientNom());
+        $historique->setClientPrenom($this->getClientPrenom());
+        $historique->setClientEmail($this->getClientEmail());
+        $historique->setClientTelephone($this->getClientTelephone());
+        $historique->setDate($this->getDate());
+        $historique->setCreneau($this->getCreneau());
+        $historique->setStatut($this->getStatut());
+
+        $this->historiques->add($historique);
+
+        return $historique;
     }
 }
