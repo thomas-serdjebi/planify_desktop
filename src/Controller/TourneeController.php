@@ -116,6 +116,8 @@ class TourneeController extends AbstractController
                         'client_nom' => $livraison->getClientNom(),
                         'client_prenom' => $livraison->getClientPrenom(),
                         'statut' => $livraison->getStatut(),
+                        'latitude' =>$livraison->getLatitude(),
+                        'longitude'=>$livraison->getLongitude()
                     ];
                 }, $tournee->getLivraisons()->toArray()), 
             ];
