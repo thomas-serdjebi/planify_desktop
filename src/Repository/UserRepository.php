@@ -33,6 +33,18 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         $this->getEntityManager()->flush();
     }
 
+    public function findAllWithTournees(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->leftJoin('u.tournees', 't')
+            ->addSelect('t')
+            ->leftJoin('t.trajets', 'trajet')
+            ->addSelect('trajet')
+            ->getQuery()
+            ->getResult();
+    }
+    
+
 //    /**
 //     * @return User[] Returns an array of User objects
 //     */

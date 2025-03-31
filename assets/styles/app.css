@@ -1,0 +1,16 @@
+@import "bootstrap/scss/bootstrap";
+body {
+    background-color: lightgray;    
+    
+}
+.navbar {
+    height: 60px; /* Ajuste la hauteur de la navbar selon tes besoins */
+}.navbar-brand img {
+    height: 100%; /* Fait en sorte que l'image occupe toute la hauteur de la navbar */
+    width: auto; /* Garde les proportions de l'image */
+}
+
+#livraisonTable th, #livraisonTable td {
+    font-size: 0.5rem;  
+    padding: 5px 10px;  /* Réduction du padding pour diminuer la hauteur des lignes */
+}

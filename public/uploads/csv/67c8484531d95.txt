@@ -1,0 +1,6 @@
+﻿numero;adresse;code_postal;ville;client_nom;client_prenom;client_email;client_telephone;date;creneau
+liv-csv;1 rue csv;99999;villexemple1;nomcsv1;prenomcsv1;emailcsv1;658999999;15/09/2025;1
+liv-csv1;2 rue csv;99999;villexemple2;nomcsv2;prenomcsv2;emailcsv2;33658463911;16/09/2025;1
+liv-csv2;3 rue csv;99999;villexemple3;nomcsv3;prenomcsv3;emailcsv3;55194651951;17/09/2025;2
+liv-csv3;4 rue csv;99999;villexemple4;nomcsv4;prenomcsv4;emailcsv4;26276161666;18/09/2025;2
+liv-csv4;5 rue csv;99999;villexemple5;nomcsv5;prenomcsv5;emailcsv5;1515151515;19/09/2025;2

@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Livraison{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0"><i class="bi bi-box"></i> Modifier livraison :  {{livraison.numero}}</h2>
+                    <div class="d-flex gap-2 ms-auto">
+                        <a href="{{ path('app_livraison_new') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Ajouter une livraison</a>
+                        <a href="" class="btn btn-warning"><i class="bi bi-filetype-csv"></i> Importer un csv</a>
+                        <a href="{{ path('app_livraison_delete_history')}}" class="btn btn-danger"><i class="bi bi-trash"></i> Supprimer</a>
+                    </div>
+                </div>
+
+                {{ include('livraison/_form.html.twig', {'button_label': 'Update'}) }}
+
+            </div>
+        </div>
+    </div>
+
+
+
+
+{% endblock %}

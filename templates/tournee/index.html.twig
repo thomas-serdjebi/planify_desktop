@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tournee index{% endblock %}
+
+{% block body %}
+    <h1>Tournee index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Date</th>
+                <th>Duree</th>
+                <th>Distance</th>
+                <th>Statut</th>
+                <th>Creneau</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for tournee in tournees %}
+            <tr>
+                <td>{{ tournee.id }}</td>
+                <td>{{ tournee.date ? tournee.date|date('Y-m-d') : '' }}</td>
+                <td>{{ tournee.duree ? tournee.duree|date('H:i:s') : '' }}</td>
+                <td>{{ tournee.distance }}</td>
+                <td>{{ tournee.statut }}</td>
+                <td>{{ tournee.creneau }}</td>
+                <td>
+                    <a href="{{ path('app_tournee_show', {'id': tournee.id}) }}">show</a>
+                    <a href="{{ path('app_tournee_edit', {'id': tournee.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_tournee_new') }}">Create new</a>
+{% endblock %}

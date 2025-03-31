@@ -40,9 +40,16 @@ class Tournee
     #[ORM\Column(length: 1)]
     private ?string $creneau = null;
 
+    /**
+     * @var Collection<int, Livraison>
+     */
+    #[ORM\OneToMany(targetEntity: Livraison::class, mappedBy: 'tournee')]
+    private Collection $livraisons;
+
     public function __construct()
     {
         $this->trajets = new ArrayCollection();
+        $this->livraisons = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -148,6 +155,36 @@ class Tournee
     public function setCreneau(string $creneau): static
     {
         $this->creneau = $creneau;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Livraison>
+     */
+    public function getLivraisons(): Collection
+    {
+        return $this->livraisons;
+    }
+
+    public function addLivraison(Livraison $livraison): static
+    {
+        if (!$this->livraisons->contains($livraison)) {
+            $this->livraisons->add($livraison);
+            $livraison->setTournee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLivraison(Livraison $livraison): static
+    {
+        if ($this->livraisons->removeElement($livraison)) {
+            // set the owning side to null (unless already changed)
+            if ($livraison->getTournee() === $this) {
+                $livraison->setTournee(null);
+            }
+        }
 
         return $this;
     }

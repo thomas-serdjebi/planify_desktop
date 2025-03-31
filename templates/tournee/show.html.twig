@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tournee{% endblock %}
+
+{% block body %}
+    <h1>Tournee</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ tournee.id }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ tournee.date ? tournee.date|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Duree</th>
+                <td>{{ tournee.duree ? tournee.duree|date('H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Distance</th>
+                <td>{{ tournee.distance }}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>{{ tournee.statut }}</td>
+            </tr>
+            <tr>
+                <th>Creneau</th>
+                <td>{{ tournee.creneau }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_tournee_index') }}">back to list</a>
+
+    <a href="{{ path('app_tournee_edit', {'id': tournee.id}) }}">edit</a>
+
+    {{ include('tournee/_delete_form.html.twig') }}
+{% endblock %}

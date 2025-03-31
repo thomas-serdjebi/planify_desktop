@@ -41,7 +41,7 @@ class AppFixtures extends Fixture
                 $tournee->setDate($dateToday)
                         ->setDuree(new \DateTime('02:00:00')) // Exemple de durée : 2 heures
                         ->setDistance(mt_rand(10, 100)) // Distance aléatoire
-                        ->setStatut('En cours')
+                        ->setStatut('Programmée')
                         ->setLivreur($user)
                         ->setCreneau("{$c}");
                 $manager->persist($tournee);

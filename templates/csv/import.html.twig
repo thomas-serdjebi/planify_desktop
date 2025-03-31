@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Planify - Import Csv{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <h2><i class="bi bi-filetype-csv"></i> Import du CSV </h2>
+            <center>
+                <p> Veuillez sélectionner le fichier CSV pour importer les nouvelles livraisons .</p>
+                {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+                <div class="col-6">
+                    {{ form_widget(form.csv_file, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                    <button type="submit" class="btn btn-primary">Importer</button>
+                {{ form_end(form) }}
+
+                {% for message in app.flashes('success') %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+
+                {% for message in app.flashes('danger') %}
+                    <div class="alert alert-danger">{{ message }}</div>
+                {% endfor %}
+            </center>
+        </div>
+    </div>
+
+{% endblock %}

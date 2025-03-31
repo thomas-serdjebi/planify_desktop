@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Tournee{% endblock %}
+
+{% block body %}
+    <h1>Edit Tournee</h1>
+
+    {{ include('tournee/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_tournee_index') }}">back to list</a>
+
+    {{ include('tournee/_delete_form.html.twig') }}
+{% endblock %}

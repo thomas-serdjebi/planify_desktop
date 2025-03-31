@@ -58,6 +58,15 @@ class Livraison
     #[ORM\OneToMany(targetEntity: Historique::class, mappedBy: 'livraison', orphanRemoval: true)]
     private Collection $historiques;
 
+    #[ORM\Column]
+    private ?float $longitude = null;
+
+    #[ORM\Column]
+    private ?float $latitude = null;
+
+    #[ORM\ManyToOne(inversedBy: 'livraisons')]
+    private ?tournee $tournee = null;
+
     public function __construct()
     {
         $this->historiques = new ArrayCollection();
@@ -238,6 +247,42 @@ class Livraison
                 $historique->setLivraison(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLongitude(): ?float
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(float $longitude): static
+    {
+        $this->longitude = $longitude;
+
+        return $this;
+    }
+
+    public function getLatitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(float $latitude): static
+    {
+        $this->latitude = $latitude;
+
+        return $this;
+    }
+
+    public function getTournee(): ?tournee
+    {
+        return $this->tournee;
+    }
+
+    public function setTournee(?tournee $tournee): static
+    {
+        $this->tournee = $tournee;
 
         return $this;
     }
