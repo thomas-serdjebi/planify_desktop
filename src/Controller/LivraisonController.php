@@ -34,4 +34,30 @@ class LivraisonController extends AbstractController
             'livraison' => $livraison
         ]);
     }
+
+    #[Route('/livraison/{id}/statut', name: 'update_livraison_statut', methods: ['PATCH'])]
+    public function updateStatut(
+        Livraison $livraison,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $data = json_decode($request->getContent(), true);
+
+        if (!isset($data['statut'])) {
+            return $this->json(['error' => 'Le statut est requis'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Mise à jour du statut de la livraison
+        $livraison->setStatut($data['statut']);
+        $entityManager->persist($livraison);
+        $entityManager->flush();
+
+        return $this->json([
+            'message' => 'Statut de la livraison mis à jour avec succès.',
+            'livraison' => [
+                'id' => $livraison->getId(),
+                'statut' => $livraison->getStatut(),
+            ]
+        ], Response::HTTP_OK);
+    }
 }
