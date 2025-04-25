@@ -3,12 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Livraison;
+use App\Entity\Historique;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<Livraison>
- */
 class LivraisonRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -16,28 +14,28 @@ class LivraisonRepository extends ServiceEntityRepository
         parent::__construct($registry, Livraison::class);
     }
 
-//    /**
-//     * @return Livraison[] Returns an array of Livraison objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('l')
-//            ->andWhere('l.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('l.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function saveWithHistory(Livraison $livraison, string $evenement): void
+    {
+        $entityManager = $this->getEntityManager();
 
-//    public function findOneBySomeField($value): ?Livraison
-//    {
-//        return $this->createQueryBuilder('l')
-//            ->andWhere('l.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+        $historique = new Historique();
+        $historique->setLivraison($livraison);
+        $historique->setDateEnregistrement(new \DateTime());
+        $historique->setEvenement($evenement);
+        $historique->setNumero($livraison->getNumero());
+        $historique->setAdresse($livraison->getAdresse());
+        $historique->setCodePostal($livraison->getCodePostal());
+        $historique->setVille($livraison->getVille());
+        $historique->setClientNom($livraison->getClientNom());
+        $historique->setClientPrenom($livraison->getClientPrenom());
+        $historique->setClientEmail($livraison->getClientEmail());
+        $historique->setClientTelephone($livraison->getClientTelephone());
+        $historique->setDate($livraison->getDate());
+        $historique->setCreneau($livraison->getCreneau());
+        $historique->setStatut($livraison->getStatut());
+
+        $entityManager->persist($livraison);
+        $entityManager->persist($historique);
+        $entityManager->flush();
+    }
 }

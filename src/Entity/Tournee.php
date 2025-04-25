@@ -7,7 +7,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
 
+#[ApiResource]
 #[ORM\Entity(repositoryClass: TourneeRepository::class)]
 class Tournee
 {
@@ -30,12 +32,15 @@ class Tournee
 
     #[ORM\ManyToOne(inversedBy: 'tournees')]
     private ?User $livreur = null;
+    
 
     /**
      * @var Collection<int, Trajet>
      */
     #[ORM\OneToMany(targetEntity: Trajet::class, mappedBy: 'tournee')]
     private Collection $trajets;
+    
+
 
     #[ORM\Column(length: 1)]
     private ?string $creneau = null;

@@ -3,78 +3,127 @@
 namespace App\Controller;
 
 use App\Entity\Tournee;
-use App\Form\TourneeType;
-use App\Repository\TourneeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/tournee')]
-final class TourneeController extends AbstractController{
-    #[Route(name: 'app_tournee_index', methods: ['GET'])]
-    public function index(TourneeRepository $tourneeRepository): Response
+class TourneeController extends AbstractController
+{
+
+    #[Route('/api/tournees/passees/{livreurId}', name: 'tournees_passees')]
+    public function tourneesPassees(EntityManagerInterface $entityManager, int $livreurId): JsonResponse
     {
-        return $this->render('tournee/index.html.twig', [
-            'tournees' => $tourneeRepository->findAll(),
-        ]);
+        $aujourdhui = new \DateTimeImmutable('today');
+
+        $tournees = $entityManager->getRepository(Tournee::class)->createQueryBuilder('t')
+            ->leftJoin('t.livraisons', 'l')
+            ->addSelect('l')
+            ->where('t.date < :aujourdhui') 
+            ->andWhere('t.livreur = :livreurId')
+            ->setParameter('aujourdhui', $aujourdhui->setTime(0, 0, 0)) 
+            ->setParameter('livreurId', $livreurId)
+            ->getQuery()
+            ->getResult();
+
+        return new JsonResponse($this->normalizeTournees($tournees));
     }
 
-    #[Route('/new', name: 'app_tournee_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/api/tournees/aujourdhui/{livreurId}', name: 'tournees_aujourdhui')]
+    public function tourneesDuJour(EntityManagerInterface $entityManager, int $livreurId): JsonResponse
     {
-        $tournee = new Tournee();
-        $form = $this->createForm(TourneeType::class, $tournee);
-        $form->handleRequest($request);
+        $aujourdhui = new \DateTimeImmutable('today');
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->persist($tournee);
-            $entityManager->flush();
+        $tournees = $entityManager->getRepository(Tournee::class)->createQueryBuilder('t')
+            ->leftJoin('t.livraisons', 'l')
+            ->addSelect('l')
+            ->where('t.date BETWEEN :start AND :end')
+            ->andWhere('t.livreur = :livreurId')
+            ->setParameter('start', $aujourdhui->setTime(0, 0, 0))
+            ->setParameter('end', $aujourdhui->setTime(23, 59, 59))
+            ->setParameter('livreurId', $livreurId)
+            ->getQuery()
+            ->getResult();
 
-            return $this->redirectToRoute('app_tournee_index', [], Response::HTTP_SEE_OTHER);
+        return new JsonResponse($this->normalizeTournees($tournees));
+    }
+
+    #[Route('/api/tournees/futures/{livreurId}', name: 'tournees_futures')]
+    public function tourneesFutures(EntityManagerInterface $entityManager, int $livreurId): JsonResponse
+    {
+        $aujourdhui = new \DateTimeImmutable('today');
+
+        $tournees = $entityManager->getRepository(Tournee::class)->createQueryBuilder('t')
+            ->leftJoin('t.livraisons', 'l')
+            ->addSelect('l')
+            ->where('t.date > :aujourdhui')
+            ->andWhere('t.livreur = :livreurId')
+            ->setParameter('aujourdhui', $aujourdhui->setTime(0, 0, 0))
+            ->setParameter('livreurId', $livreurId)
+            ->getQuery()
+            ->getResult();
+
+        return new JsonResponse($this->normalizeTournees($tournees));
+    }
+
+    #[Route('/api/tournees/all/{livreurId}', name: 'tournees_all')]
+    public function toutesLesTournees(EntityManagerInterface $entityManager, int $livreurId): JsonResponse
+    {
+        $tournees = $entityManager->getRepository(Tournee::class)->createQueryBuilder('t')
+            ->leftJoin('t.livraisons', 'l')
+            ->addSelect('l')
+            ->where('t.livreur = :livreurId')
+            ->setParameter('livreurId', $livreurId)
+            ->orderBy('t.date', 'ASC')
+            ->addOrderBy('t.creneau', 'ASC') // AM avant PM
+            ->getQuery()
+            ->getResult();
+
+        return new JsonResponse($this->normalizeTournees($tournees));
+    }
+
+    #[Route('/api/tournees/{id}/livraisons', name: 'tournee_livraisons', methods: ['GET'])]
+    public function getTourneeLivraisons(EntityManagerInterface $entityManager, int $id): JsonResponse
+    {
+        $tournee = $entityManager->getRepository(Tournee::class)->find($id);
+
+        if (!$tournee) {
+            return new JsonResponse(['error' => 'Tournee not found'], 404);
         }
 
-        return $this->render('tournee/new.html.twig', [
-            'tournee' => $tournee,
-            'form' => $form,
-        ]);
+        return new JsonResponse($this->normalizeTournees([$tournee])[0]);
     }
 
-    #[Route('/{id}', name: 'app_tournee_show', methods: ['GET'])]
-    public function show(Tournee $tournee): Response
+
+    private function normalizeTournees(array $tournees): array
     {
-        return $this->render('tournee/show.html.twig', [
-            'tournee' => $tournee,
-        ]);
+        return array_map(function (Tournee $tournee) {
+            return [
+                'id' => $tournee->getId(),
+                'date' => $tournee->getDate()?->format('Y-m-d'),
+                'duree' => $tournee->getDuree()?->format('H:i:s'),
+                'distance' => $tournee->getDistance(),
+                'statut' => $tournee->getStatut(),
+                'livreur_id' => $tournee->getLivreur()?->getId(),
+                'creneau' => $tournee->getCreneau(),
+                'livraisons' => array_map(function ($livraison) {
+                    return [
+                        'id' => $livraison->getId(),
+                        'numero' => $livraison->getNumero(),
+                        'adresse' => $livraison->getAdresse(),
+                        'code_postal' => $livraison->getCodePostal(),
+                        'ville' => $livraison->getVille(),
+                        'client_nom' => $livraison->getClientNom(),
+                        'client_prenom' => $livraison->getClientPrenom(),
+                        'statut' => $livraison->getStatut(),
+                        'latitude' =>$livraison->getLatitude(),
+                        'longitude'=>$livraison->getLongitude()
+                    ];
+                }, $tournee->getLivraisons()->toArray()), 
+            ];
+        }, $tournees);
     }
 
-    #[Route('/{id}/edit', name: 'app_tournee_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Tournee $tournee, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(TourneeType::class, $tournee);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_tournee_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->render('tournee/edit.html.twig', [
-            'tournee' => $tournee,
-            'form' => $form,
-        ]);
-    }
-
-    #[Route('/{id}', name: 'app_tournee_delete', methods: ['POST'])]
-    public function delete(Request $request, Tournee $tournee, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$tournee->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($tournee);
-            $entityManager->flush();
-        }
-
-        return $this->redirectToRoute('app_tournee_index', [], Response::HTTP_SEE_OTHER);
-    }
+    
+    
 }
