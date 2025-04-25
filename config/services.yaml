@@ -1,18 +1,17 @@
-# This file is the entry point to configure your own services.
-# Files in the packages/ subdirectory configure your dependencies.
-
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    csv_directory: '%kernel.project_dir%/public/uploads/csv'
-services:
-    # default configuration for services in *this* file
-    _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+    google_maps_api_key: '%env(GOOGLE_MAPS_API_KEY)%'
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
+services:
+    _defaults:
+        autowire: true      # Injection automatique des dépendances
+        autoconfigure: true # Enregistre automatiquement les subscribers
+
+    App\Repository\:
+        resource: '../src/Repository'
+        autowire: true
+        autoconfigure: true
+
+    # Rend toutes les classes dans src/ disponibles en tant que services, sauf exclusions
     App\:
         resource: '../src/'
         exclude:
@@ -20,5 +19,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
+    # Définition explicite du service GeolocationService
+    App\Service\GeolocationService:
+        arguments:
+            $googleMapsApiKey: '%google_maps_api_key%'
