@@ -14,6 +14,17 @@ class LivraisonRepository extends ServiceEntityRepository
         parent::__construct($registry, Livraison::class);
     }
 
+    public function findLivraisonsByDateAndCreneau($date, $creneau)
+    {
+        return $this->createQueryBuilder('l')
+            ->where('l.date = :date')
+            ->andWhere('l.creneau = :creneau')
+            ->setParameter('date', $date instanceof \DateTimeInterface ? $date->format('Y-m-d') : $date)
+            ->setParameter('creneau', $creneau)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function saveWithHistory(Livraison $livraison, string $evenement): void
     {
         $entityManager = $this->getEntityManager();

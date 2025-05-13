@@ -4,12 +4,13 @@ namespace App\Controller;
 
 use App\Entity\Livraison;
 use App\Form\LivraisonType;
+use App\Service\GeolocationService;
 use App\Repository\LivraisonRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 #[Route('/livraison')]
 final class LivraisonController extends AbstractController{
@@ -22,13 +23,20 @@ final class LivraisonController extends AbstractController{
     }
 
     #[Route('/new', name: 'app_livraison_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, GeolocationService $geolocationService): Response
     {
         $livraison = new Livraison();
         $form = $this->createForm(LivraisonType::class, $livraison);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            
+            $coords = $geolocationService->getCoordinates($livraison->getAdresse(). ', '. $livraison->getCodePostal() . ' ' . $livraison->getVille());
+            if (!$coords || !isset($coords['latitude']) || !isset($coords['longitude'])) {
+                dump("Adresse ignorée : {$livraison->getAdresse()} (Coordonnées non trouvées)");
+            }
+            $livraison->setLatitude($coords['latitude']);
+            $livraison->setLongitude($coords['longitude']);
             $livraison->setStatut('En attente');
             $entityManager->persist($livraison);
             $entityManager->flush();

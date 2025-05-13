@@ -37,14 +37,14 @@
                     <tbody>
                         {% for livraison in livraisons %}
                             <tr>
-                                <td>{{ livraison.numero }}</td>
+                                <td style="white-space: nowrap; width: 1%;">{{ livraison.numero }}</td>
                                 <td>{{ livraison.adresse }}</td>
                                 <td>{{ livraison.codePostal }}</td>
                                 <td>{{ livraison.ville }}</td>
                                 <td>{{ livraison.clientNom }} {{ livraison.clientPrenom }}</td>
                                 <td>{{ livraison.clientEmail }}</td>
                                 <td>{{ livraison.clientTelephone }}</td>
-                                <td>{{ livraison.date ? livraison.date|date('d-m-Y') : '' }}</td>
+                                <td style="width: auto;">{{ livraison.date ? livraison.date|date('d/m/Y') : '' }}</td>
                                 <td>{{ livraison.creneau }}</td>
                                 <td>    
                                     {% if livraison.statut == 'En cours' %}
@@ -60,9 +60,12 @@
                                     {% endif %}
                                 </td>
                                 <td style="width: 150px;">
-                                    <a class= "btn btn-sm btn-primary" href=""><i class="bi bi-truck"></i></a>
-                                    <a class ="btn btn-sm btn-warning" href="{{ path('app_livraison_edit', {'id': livraison.id}) }}"><i class="bi bi-pencil"></i></a>
-                                    <a class ="btn btn-sm btn-danger" href="{{ path('app_livraison_delete', {'id': livraison.id}) }}"><i class="bi bi-trash"></i></a>
+                                    {% if livraison.statut == "En attente" %}
+                                        <a class ="btn btn-sm btn-warning" href="{{ path('app_livraison_edit', {'id': livraison.id}) }}"><i class="bi bi-pencil"></i></a>
+                                        <a class ="btn btn-sm btn-danger" href="{{ path('app_livraison_delete', {'id': livraison.id}) }}"><i class="bi bi-trash"></i></a>
+                                    {% else %}
+                                        <a class= "btn btn-sm btn-primary" href=""><i class="bi bi-truck"></i></a>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% else %}

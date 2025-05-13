@@ -16,18 +16,60 @@ class GeolocationService
 
     public function getCoordinates(string $address): ?array
     {
-        $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($address) . "&key=" . $this->googleMapsApiKey;
-
+        $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($address) . "&components=country:FR&region=fr&language=fr&key=" . $this->googleMapsApiKey;
+    
+        
         $response = $this->httpClient->request('GET', $url);
         $data = $response->toArray();
-
+    
         if (isset($data['results'][0]['geometry']['location'])) {
+            $latitude = $data['results'][0]['geometry']['location']['lat'];
+            $longitude = $data['results'][0]['geometry']['location']['lng'];
+        
+            // Initialisation du code postal à null
+            $postalCode = null;
+        
+            // Parcours des address_components pour trouver le code postal
+            foreach ($data['results'][0]['address_components'] as $component) {
+                if (in_array('postal_code', $component['types'])) {
+                    $postalCode = $component['long_name'];
+                    break;
+                }
+            }
+        
             return [
-                'latitude' => $data['results'][0]['geometry']['location']['lat'],
-                'longitude' => $data['results'][0]['geometry']['location']['lng'],
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'postal_code' => $postalCode,
             ];
         }
-
+        
         return null;
     }
+
+    public function getDistanceBetween(string $origin, string $destination): ?array
+    {
+        $url = sprintf(
+            'https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&language=fr&key=%s',
+            urlencode($origin),
+            urlencode($destination),
+            $this->googleMapsApiKey
+        );
+    
+        $response = $this->httpClient->request('GET', $url);
+        $data = $response->toArray(false);
+    
+        if (
+            isset($data['rows'][0]['elements'][0]['status']) &&
+            $data['rows'][0]['elements'][0]['status'] === 'OK'
+        ) {
+            return [
+                'duration' => $data['rows'][0]['elements'][0]['duration']['value'], // en secondes
+                'distance' => $data['rows'][0]['elements'][0]['distance']['value'], // en mètres
+            ];
+        }
+    
+        return null;
+    }
+    
 }

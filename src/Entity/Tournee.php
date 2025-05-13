@@ -21,8 +21,8 @@ class Tournee
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $date = null;
 
-    #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $duree = null;
+    #[ORM\Column(type: 'integer')]
+    private ?int $duree = null;
 
     #[ORM\Column]
     private ?float $distance = null;
@@ -74,15 +74,14 @@ class Tournee
         return $this;
     }
 
-    public function getDuree(): ?\DateTimeInterface
+    public function getDuree(): ?int
     {
         return $this->duree;
     }
-
-    public function setDuree(\DateTimeInterface $duree): static
+    
+    public function setDuree(int $duree): self
     {
         $this->duree = $duree;
-
         return $this;
     }
 

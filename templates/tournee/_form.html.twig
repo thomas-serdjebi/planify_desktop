@@ -1,4 +1,52 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+<div class="container mt-5">
+    <div class="row">
+        {# Colonne gauche : Utilisateurs #}
+        <div class="col-md-6">
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <i class="bi bi-info-circle text-primary me-1" title="Il sera créé autant de tournées que d'utilisateurs sélectionnés."></i>
+                        {{ form_label(form.users) }} 
+                        <strong id="selected-count">(0)</strong>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="select-all-users">Tout sélectionner</button>
+                </div>
+
+                <div class="border rounded p-2 bg-white shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                    {% for checkbox in form.users %}
+                        <div class="form-check">
+                            {{ form_widget(checkbox, { 'attr': {'class': 'form-check-input user-checkbox'} }) }}
+                            {{ form_label(checkbox, null, { 'label_attr': {'class': 'form-check-label'} }) }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# Colonne droite : Date + Créneau #}
+        <div class="col-md-6">
+            <div class="mb-3">
+                {{ form_label(form.date) }}
+                {{ form_widget(form.date, { 'attr': {'class': 'form-control'} }) }}
+            </div>
+
+            <div class="mb-3">
+                {{ form_label(form.creneau) }}
+                <div class="d-flex flex-column">
+                    {% for choice in form.creneau %}
+                        <div class="form-check">
+                            {{ form_widget(choice, { 'attr': {'class': 'form-check-input'} }) }}
+                            {{ form_label(choice, null, { 'label_attr': {'class': 'form-check-label'} }) }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary w-50">Créer</button>
+    </div>
+</div>
 {{ form_end(form) }}

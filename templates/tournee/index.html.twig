@@ -1,43 +1,182 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tournee index{% endblock %}
+{% block title %}Planify - tournee{% endblock %}
 
 {% block body %}
-    <h1>Tournee index</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0"><i class="bi bi-box"></i> Liste des tournées</h2>
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success">{{ message }}</div>
+                    {% endfor %}
+                    <div class="d-flex gap-2 ms-auto">
+                        <a href="{{ path('app_tournees_create') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Générer des tournées</a>
+                        {# <a href="{{ path('app_tournee_delete_history')}}" class="btn btn-danger"><i class="bi bi-trash"></i> Supprimer les tournee de plus d'un an</a> #}
+                    </div>
+                </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Date</th>
-                <th>Duree</th>
-                <th>Distance</th>
-                <th>Statut</th>
-                <th>Creneau</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for tournee in tournees %}
-            <tr>
-                <td>{{ tournee.id }}</td>
-                <td>{{ tournee.date ? tournee.date|date('Y-m-d') : '' }}</td>
-                <td>{{ tournee.duree ? tournee.duree|date('H:i:s') : '' }}</td>
-                <td>{{ tournee.distance }}</td>
-                <td>{{ tournee.statut }}</td>
-                <td>{{ tournee.creneau }}</td>
-                <td>
-                    <a href="{{ path('app_tournee_show', {'id': tournee.id}) }}">show</a>
-                    <a href="{{ path('app_tournee_edit', {'id': tournee.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="7">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                <table id="tourneeTable" class="table table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Créneau</th>
+                            <th>Nombre de livraisons</th>
+                            <th>Livreur</th>
+                            <th>Durée totale</th>
+                            <th>Distance totale (km)</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tournee in tournees %}
+                            <tr>
+                                <td>{{ tournee.date ? tournee.date|date('d/m/Y') : '' }}</td>
+                                <td>
+                                    {% if tournee.creneau == 1 %}
+                                        Matin
+                                    {% elseif tournee.creneau == 2 %}
+                                        Après-midi
+                                    {% else %}
+                                        Créneau inconnu !
+                                    {% endif %}
+                                </td>
+                                <td>{{ tournee.trajets|length }}</td>
+                                <td>
+                                    {% if tournee.livreur %}
+                                        {{ tournee.livreur.name }} {{ tournee.livreur.firstName }}
+                                    {% else %}
+                                        Pas de livreur attribué pour cette tournée !
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% set dureeTotale = 0 %}
+                                    {% for trajet in tournee.trajets %}
+                                        {% set dureeTotale = dureeTotale + trajet.duree %}
+                                    {% endfor %}
+                                    {{ dureeTotale }}
+                                </td>
+                                <td>
+                                    {% set distanceTotale = 0 %}
+                                    {% for trajet in tournee.trajets %}
+                                        {% set distanceTotale = distanceTotale + trajet.distance %}
+                                    {% endfor %}
+                                    {% set distanceTotale = distanceTotale / 1000 %}
+                                    {{ distanceTotale }}
+                                </td>
+                                <td>
+                                    {% if tournee.statut == 'En cours' %}
+                                        <span class="badge bg-danger text-dark">En cours</span>
+                                    {% elseif tournee.statut == 'En attente' %}
+                                        <span class="badge bg-warning">En attente</span>
+                                    {% elseif tournee.statut == 'Livrée' %}
+                                        <span class="badge bg-success">Livrée</span>
+                                    {% elseif tournee.statut == 'programmé' %}
+                                        <span class="badge bg-info">Programmée</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inconnu</span>
+                                    {% endif %}
+                                </td>
+                                <td style="width: 150px;">
+                                    <a class="btn btn-sm btn-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#trajetModal{{ tournee.id }}">
+                                        <i class="bi bi-box"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="8">Aucune tournée trouvée</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
 
-    <a href="{{ path('app_tournee_new') }}">Create new</a>
+                </table>
+                {% for tournee in tournees %}
+                    <div class="modal fade" id="trajetModal{{ tournee.id }}" tabindex="-1" aria-labelledby="trajetModalLabel{{ tournee.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="trajetModalLabel{{ tournee.id }}">Trajets de la tournée du {{ tournee.date|date('d/m/Y') }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                                </div>
+                                <div class="modal-body">
+                                    {% if tourneeTrajets[tournee.id] is defined and tourneeTrajets[tournee.id]|length > 0 %}
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Départ</th>
+                                                    <th>Arrivée</th>
+                                                    <th>Durée (min)</th>
+                                                    <th>Distance (km)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for trajet in tourneeTrajets[tournee.id] %}
+                                                    <tr>
+                                                        <td>{{ trajet.ordre }}</td>
+                                                        <td>{{ trajet.adresseDepart }}</td>
+                                                        <td>{{ trajet.adresseArrivee }}</td>
+                                                        <td>{{ trajet.duree }}</td>
+                                                        <td>{{ (trajet.distance / 1000)|number_format(2, '.', ' ') }}</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    {% else %}
+                                        <p>Aucun trajet pour cette tournée.</p>
+                                    {% endif %}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+
+
+
+<style>
+    #tournees-details {
+        opacity: 0;
+        transform: translateY(-10px);
+        filter: blur(5px);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out, filter 0.3s ease-out;
+    }
+
+    .show {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+        filter: blur(0) !important;
+    }
+</style>
+<script>
+    $(document).ready(function () {
+        $('#tourneeTable').DataTable({
+            "order": [[7, "desc"], [8, "asc"]], // Colonne 7 (Date) en décroissant, puis Colonne 8 (Créneau) en croissant
+            "paging": true,  // Pagination activée
+            "lengthMenu": [5, 10, 25, 50],  // Options de pagination
+            "searching": true,  // Recherche activée
+            "ordering": true,  // Tri des colonnes activé
+            "info": false,  // Affichage des informations (ex: "Affichage de 1 à 10 sur 50 entrées")
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json"  // Traduction en français
+            }
+        });
+    });
+</script>
+
+
+
+
+
 {% endblock %}
