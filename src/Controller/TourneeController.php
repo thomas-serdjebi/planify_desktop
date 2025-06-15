@@ -365,6 +365,42 @@ class TourneeController extends AbstractController
         return new JsonResponse($this->normalizeTournees([$tournee])[0]);
     }
 
+    #[Route('/api/tournees/{id}', name: 'update_tournee', methods: ['PATCH'])]
+    public function updateTournee(EntityManagerInterface $entityManager, Request $request, int $id): JsonResponse
+    {
+        // 🔥 DEBUG : Voir si la requête contient bien du JSON
+        dump($request->headers->all()); // Affiche les headers
+        dump($request->getContent()); // Affiche le JSON brut
+        die(); // Stoppe l'exécution ici
+    
+        $tournee = $entityManager->getRepository(Tournee::class)->find($id);
+    
+        if (!$tournee) {
+            return new JsonResponse(['error' => 'Tournee non trouvée'], 404);
+        }
+    
+        $data = json_decode($request->getContent(), true);
+    
+        if (!$data) {
+            return new JsonResponse(['error' => 'JSON invalide'], 400);
+        }
+    
+        if (isset($data['statut'])) {
+            $tournee->setStatut($data['statut']);
+        }
+    
+        $entityManager->persist($tournee);
+        $entityManager->flush();
+    
+        return new JsonResponse([
+            'message' => 'Tournée mise à jour avec succès.',
+            'tournee' => [
+                'id' => $tournee->getId(),
+                'statut' => $tournee->getStatut()
+            ]
+        ]);
+    }
+    
 
     private function normalizeTournees(array $tournees): array
     {
