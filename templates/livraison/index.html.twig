@@ -13,7 +13,7 @@
                     {% endfor %}
                     <div class="d-flex gap-2 ms-auto">
                         <a href="{{ path('app_livraison_new') }}" class="btn btn-primary"><i class="bi bi-plus"></i> Ajouter une livraison</a>
-                        <a href="" class="btn btn-warning"><i class="bi bi-filetype-csv"></i> Importer un csv</a>
+                        <a href="{{ path('csv_import') }}" class="btn btn-warning"><i class="bi bi-filetype-csv"></i> Importer un csv</a>
                         <a href="{{ path('app_livraison_delete_history')}}" class="btn btn-danger"><i class="bi bi-trash"></i> Supprimer les livraisons de plus d'un an</a>
                     </div>
                 </div>

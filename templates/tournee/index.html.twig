@@ -24,7 +24,7 @@
                             <th>Créneau</th>
                             <th>Nombre de livraisons</th>
                             <th>Livreur</th>
-                            <th>Durée totale</th>
+                            <th>Durée totale (mn)</th>
                             <th>Distance totale (km)</th>
                             <th>Statut</th>
                             <th>Actions</th>
@@ -56,7 +56,8 @@
                                     {% for trajet in tournee.trajets %}
                                         {% set dureeTotale = dureeTotale + trajet.duree %}
                                     {% endfor %}
-                                    {{ dureeTotale }}
+                                    {% set dureeTotaleMinutes = (dureeTotale / 60) | round %}
+                                    {{ dureeTotaleMinutes }}   
                                 </td>
                                 <td>
                                     {% set distanceTotale = 0 %}
@@ -105,28 +106,35 @@
                                 </div>
                                 <div class="modal-body">
                                     {% if tourneeTrajets[tournee.id] is defined and tourneeTrajets[tournee.id]|length > 0 %}
-                                        <table class="table">
-                                            <thead>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Départ</th>
+                                                <th>Arrivée</th>
+                                                <th>Durée (min)</th>
+                                                <th>Distance (km)</th>
+                                                <th>Statut Livraison</th> <!-- Nouvelle colonne pour le statut -->
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for trajet in tourneeTrajets[tournee.id] %}
                                                 <tr>
-                                                    <th>#</th>
-                                                    <th>Départ</th>
-                                                    <th>Arrivée</th>
-                                                    <th>Durée (min)</th>
-                                                    <th>Distance (km)</th>
+                                                    <td>{{ trajet.ordre }}</td>
+                                                    <td>{{ trajet.adresseDepart }}</td>
+                                                    <td>{{ trajet.adresseArrivee }}</td>
+                                                    <td>
+                                                        {% set dureeTrajet = (trajet.duree / 60) | round %}
+                                                        {{ dureeTrajet }}
+                                                    </td>
+                                                    <td>{{ (trajet.distance / 1000)|number_format(2, '.', ' ') }}</td>
+                                                    <td>{{ trajet.statutLivraison }}</td> <!-- Affichage du statut -->
                                                 </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for trajet in tourneeTrajets[tournee.id] %}
-                                                    <tr>
-                                                        <td>{{ trajet.ordre }}</td>
-                                                        <td>{{ trajet.adresseDepart }}</td>
-                                                        <td>{{ trajet.adresseArrivee }}</td>
-                                                        <td>{{ trajet.duree }}</td>
-                                                        <td>{{ (trajet.distance / 1000)|number_format(2, '.', ' ') }}</td>
-                                                    </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+
+
                                     {% else %}
                                         <p>Aucun trajet pour cette tournée.</p>
                                     {% endif %}

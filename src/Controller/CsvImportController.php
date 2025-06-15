@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use League\Csv\Reader;
 use App\Form\CsvImportType;
+use App\Form\ImportCsvType;
 use App\Service\CsvService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +16,7 @@ class CsvImportController extends AbstractController
     #[Route('/import', name: 'csv_import')]
     public function import(Request $request, CsvService $csvService): Response
     {
-        $form = $this->createForm(CsvImportType::class);
+        $form = $this->createForm(ImportCsvType::class);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

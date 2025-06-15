@@ -48,8 +48,9 @@ class TourneeController extends AbstractController
                     'distance' => $trajet->getDistance(),
                     'adresseArrivee' => $livraison ? $livraison->getAdresse() : 'Inconnue',
                     'adresseDepart' => $adresseDepart, 
+                    'statutLivraison' => $livraison ? $livraison->getStatut() : 'Non défini', // Ajout du statut de la livraison
                 ];
-                $adresseDepart = $livraison ->getAdresse();
+                $adresseDepart = $livraison ? $livraison->getAdresse() : 'Inconnue'; // Mettre à jour l'adresse départ
             }
 
             $tourneeTrajetsMap[$tournee->getId()] = $trajetInfos;

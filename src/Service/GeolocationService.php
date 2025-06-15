@@ -17,7 +17,7 @@ class GeolocationService
     public function getCoordinates(string $address): ?array
     {
         $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($address) . "&components=country:FR&region=fr&language=fr&key=" . $this->googleMapsApiKey;
-    
+        dd($url);
         
         $response = $this->httpClient->request('GET', $url);
         $data = $response->toArray();
