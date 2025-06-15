@@ -13,39 +13,45 @@ class GeolocationService
         $this->httpClient = $httpClient;
         $this->googleMapsApiKey = $googleMapsApiKey;
     }
+public function getCoordinates(string $address): ?array
+{
+    $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($address) . "&components=country:FR&region=fr&language=fr&key=" . $this->googleMapsApiKey;
 
-    public function getCoordinates(string $address): ?array
-    {
-        $url = "https://maps.googleapis.com/maps/api/geocode/json?address=" . urlencode($address) . "&components=country:FR&region=fr&language=fr&key=" . $this->googleMapsApiKey;
-    
-        
-        $response = $this->httpClient->request('GET', $url);
-        $data = $response->toArray();
-    
-        if (isset($data['results'][0]['geometry']['location'])) {
-            $latitude = $data['results'][0]['geometry']['location']['lat'];
-            $longitude = $data['results'][0]['geometry']['location']['lng'];
-        
-            // Initialisation du code postal à null
-            $postalCode = null;
-        
-            // Parcours des address_components pour trouver le code postal
-            foreach ($data['results'][0]['address_components'] as $component) {
-                if (in_array('postal_code', $component['types'])) {
-                    $postalCode = $component['long_name'];
-                    break;
-                }
-            }
-        
-            return [
-                'latitude' => $latitude,
-                'longitude' => $longitude,
-                'postal_code' => $postalCode,
-            ];
-        }
-        
-        return null;
+    $response = $this->httpClient->request('GET', $url);
+    $data = $response->toArray();
+
+    if (!isset($data['status']) || $data['status'] !== 'OK') {
+        throw new \Exception("Google Geocode API error for address \"$address\": status " . ($data['status'] ?? 'unknown'));
     }
+
+    if (empty($data['results'])) {
+        throw new \Exception("No geocode results found for address \"$address\"");
+    }
+
+    $location = $data['results'][0]['geometry']['location'] ?? null;
+
+    if ($location === null) {
+        throw new \Exception("No location found in geocode results for \"$address\"");
+    }
+
+    $latitude = $location['lat'];
+    $longitude = $location['lng'];
+
+    $postalCode = null;
+    foreach ($data['results'][0]['address_components'] as $component) {
+        if (in_array('postal_code', $component['types'])) {
+            $postalCode = $component['long_name'];
+            break;
+        }
+    }
+
+    return [
+        'latitude' => $latitude,
+        'longitude' => $longitude,
+        'postal_code' => $postalCode,
+    ];
+}
+
 
     public function getDistanceBetween(string $origin, string $destination): ?array
     {

@@ -3,6 +3,8 @@
 namespace App\DataFixtures;
 
 use App\Entity\User;
+use App\Entity\Tournee;
+use App\Entity\Trajet;
 use App\Entity\Livraison;
 use App\Service\GeolocationService;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -14,79 +16,112 @@ class AppFixtures extends Fixture
     private UserPasswordHasherInterface $passwordHasher;
     private GeolocationService $geolocationService;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher, GeolocationService $geolocationService)
-    {
+    public function __construct(
+        UserPasswordHasherInterface $passwordHasher,
+        GeolocationService $geolocationService
+    ) {
         $this->passwordHasher = $passwordHasher;
         $this->geolocationService = $geolocationService;
     }
 
     public function load(ObjectManager $manager): void
     {
-        $today = new \DateTime();
-        $adresses = [
-            "10 Boulevard Romain Rolland", "25 Rue Saint-Pierre", "42 Avenue de Toulon", "14 Rue Martiny",
-            "18 Rue François Mauriac", "33 Boulevard Rabatau", "77 Avenue de la Timone", "54 Rue Louis Astruc",
-            "99 Boulevard Sakakini", "12 Avenue Jean Lombard", "3 Rue de Lodi", "15 Avenue du Prado", 
-            "82 Boulevard Baille", "23 Rue des Bons Enfants", "50 Rue Saint-Ferréol", "61 Rue Paradis",
-            "19 Rue Montgrand", "90 Boulevard Rabatau", "28 Rue de Rome", "64 Avenue de Mazargues",
-            "35 Rue Sainte", "2 Rue Dragon", "76 Boulevard Chave", "11 Avenue de la Corse",
-            "27 Boulevard Sakakini", "14 Rue Breteuil", "5 Rue de la Palud", "32 Rue Consolat",
-            "19 Boulevard Tellène", "88 Avenue des Chartreux"
+        $dateToday = new \DateTime();
+        $adresseMarseille10 = [
+            "10 Boulevard Baille, Marseille",
+            "5 Rue Jean Martin, Marseille",
+            "15 Rue Saint-Pierre, Marseille",
+            "8 Avenue Foch, Marseille",
+            "22 Rue de la Loubière, Marseille"
         ];
 
-        $noms = ["Dupont", "Lemoine", "Martin", "Bernard", "Dubois", "Morel", "Laurent", "Girard", "Simon", "Roche"];
-        $prenoms = ["Lucas", "Emma", "Léa", "Hugo", "Noah", "Manon", "Louis", "Chloé", "Nathan", "Camille"];
+        $clients = [
+            ["Jean", "Dupont"],
+            ["Marie", "Lemoine"],
+            ["Sophie", "Durand"],
+            ["Paul", "Bernard"],
+            ["Nicolas", "Morel"]
+        ];
 
         for ($i = 1; $i <= 5; $i++) {
-            $livreur = new User();
-            $livreur->setEmail("livreur{$i}@example.com")
-                    ->setRoles(['ROLE_LIVREUR'])
-                    ->setName("Livreur {$i}")
-                    ->setFirstName("Prenom{$i}");
-        
-            $hashedPassword = $this->passwordHasher->hashPassword($livreur, 'password123');
-            $livreur->setPassword($hashedPassword);
-            $manager->persist($livreur);
-        }
+            $user = new User();
+            $user->setEmail("livreur{$i}@example.com")
+                ->setRoles(['ROLE_LIVREUR'])
+                ->setName("Nom{$i}")
+                ->setFirstName("Prénom{$i}");
 
-        for ($d = 0; $d <= 7; $d++) {
-            $date = (clone $today)->modify("+$d days");
+            $hashedPassword = $this->passwordHasher->hashPassword($user, 'password123');
+            $user->setPassword($hashedPassword);
+            $manager->persist($user);
 
-            foreach ([1, 2] as $creneau) {
-                for ($i = 0; $i < 15; $i++) {
-                    $index = ($i + $creneau * 15 + $d * 30) % count($adresses);
-                    $adresse = $adresses[$index];
-                    $fullAdresse = "{$adresse}, Marseille";
+            // Tournées passées (statut Livrée)
+            for ($j = 1; $j <= 7; $j++) {
+                $pastDate = (clone $dateToday)->modify("-{$j} days");
 
-                    // Obtenir coordonnées + code postal depuis le service
-                    $coords = $this->geolocationService->getCoordinates($fullAdresse);
-                    if (
-                        !$coords || 
-                        !isset($coords['latitude'], $coords['longitude'], $coords['postal_code'])
-                    ) {
-                        dump("Adresse ignorée : {$fullAdresse} (Coordonnées ou code postal non trouvés)");
-                        continue;
+                for ($c = 1; $c <= 2; $c++) {
+                    $tournee = new Tournee();
+                    $tournee->setDate($pastDate)
+                        ->setDuree(7200) // 2h en secondes
+                        ->setDistance(mt_rand(10, 100))
+                        ->setStatut('Terminée')
+                        ->setLivreur($user)
+                        ->setCreneau("{$c}");
+
+                    $manager->persist($tournee);
+
+                    for ($k = 0; $k < 5; $k++) {
+                        $trajet = new Trajet();
+                        $trajet->setDistance(mt_rand(1, 20))
+                            ->setDuree(mt_rand(600, 1800)) // 10 à 30 min en secondes
+                            ->setOrdre($k + 1)
+                            ->setTournee($tournee);
+                        $manager->persist($trajet);
+
+                        [$prenom, $nom] = $clients[array_rand($clients)];
+                        $adresse = $adresseMarseille10[array_rand($adresseMarseille10)];
+                        $fullAddress = $adresse . ', 13010 Marseille, France';
+
+                        $coords = $this->geolocationService->getCoordinates($fullAddress);
+
+                        $livraison = new Livraison();
+                        $livraison->setNumero("LIV-{$i}{$c}{$j}{$k}")
+                            ->setAdresse($adresse)
+                            ->setCodePostal("13010")
+                            ->setVille("Marseille")
+                            ->setClientNom($nom)
+                            ->setClientPrenom($prenom)
+                            ->setClientEmail(strtolower($prenom) . "." . strtolower($nom) . "@mail.com")
+                            ->setClientTelephone("06XXXXXXXX")
+                            ->setDate($pastDate)
+                            ->setCreneau($c)
+                            ->setStatut('Livrée')
+                            ->setTournee($tournee)
+                            ->setTrajet($trajet);
+
+                        if ($coords) {
+                            $livraison->setLatitude($coords['latitude']);
+                            $livraison->setLongitude($coords['longitude']);
+                        }
+
+                        $tournee->addLivraison($livraison);
+                        $manager->persist($livraison);
                     }
+                }
+            }
 
-                    $nom = $noms[$index % count($noms)];
-                    $prenom = $prenoms[$index % count($prenoms)];
+            // Tournées aujourd’hui et futures
+            for ($j = 0; $j <= 7; $j++) {
+                $futureDate = (clone $dateToday)->modify("+{$j} days");
 
-                    $livraison = new Livraison();
-                    $livraison->setNumero("LIV-{$d}{$creneau}{$i}")
-                              ->setAdresse($fullAdresse)
-                              ->setCodePostal($coords['postal_code'])
-                              ->setVille("Marseille")
-                              ->setClientNom($nom)
-                              ->setClientPrenom($prenom)
-                              ->setClientEmail(strtolower($prenom) . "." . strtolower($nom) . "@mail.com")
-                              ->setClientTelephone("06" . mt_rand(10000000, 99999999))
-                              ->setDate($date)
-                              ->setCreneau((string)$creneau)
-                              ->setStatut("En attente")
-                              ->setLatitude($coords['latitude'])
-                              ->setLongitude($coords['longitude']);
-
-                    $manager->persist($livraison);
+                for ($c = 1; $c <= 2; $c++) {
+                    $tournee = new Tournee();
+                    $tournee->setDate($futureDate)
+                        ->setDuree(7200)
+                        ->setDistance(mt_rand(10, 100))
+                        ->setStatut('Attribuée')
+                        ->setLivreur($user)
+                        ->setCreneau("{$c}");
+                    $manager->persist($tournee);
                 }
             }
         }
