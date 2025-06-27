@@ -78,6 +78,7 @@ class TourneeController extends AbstractController
             $data = $form->getData();
             $date = $data['date'];
             $creneau = $data['creneau'];
+            $users = $form->get('users')->getData();
     
             // Récupération des livraisons
             $livraisons = $repo->findLivraisonsByDateAndCreneau($date, $creneau);
@@ -100,7 +101,7 @@ class TourneeController extends AbstractController
             }
     
             // Paramètre : nombre de tournées
-            $nbTournees = 2;
+            $nbTournees = count($users);
     
             // Recherche de la meilleure combinaison possible
             $tournees = $this->findBestPartition($points, $nbTournees, 10, $origin, $geolocationService);
@@ -124,6 +125,10 @@ class TourneeController extends AbstractController
                     );
                     $distance = $distanceInfo['distance'];
                     $duration = $distanceInfo['duration'];
+
+                        // Lien entre la tournée et l'utilisateur (livreur)
+                    $livreur = $users[$index] ?? null;
+                    $tourneeEntity->setLivreur($livreur);
             
                     // Création du trajet
                     $trajet = new Trajet();

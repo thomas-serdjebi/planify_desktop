@@ -21,18 +21,22 @@ class CsvService
         $csv->setHeaderOffset(0); // Définit la première ligne comme en-tête
 
         $livraisonsAjoutees = 0;
-        foreach ($csv as $record) {
+        foreach ($csv as $i => $record) {
+            
             $livraison = new Livraison();
-            $livraison->setNumero($record['numero'] ?? null);
+            $numero = $record['numero'] ?? null;
+            $livraison->setNumero($numero);
             $livraison->setDate(new \DateTime($record['date'] ?? 'now'));
             $livraison->setCodePostal($record['code_postal'] ?? null);
             $livraison->setVille($record['ville'] ?? null);
             $livraison->setClientEmail($record['client_email'] ?? null);
             $livraison->setClientNom($record['client_nom'] ?? null);
             $livraison->setClientPrenom($record['client_prenom'] ?? null);
+            $livraison->setClientTelephone($record['telephone'] ?? null);
             $livraison->setAdresse($record['telephone'] ?? null);
             $livraison->setLongitude($record['longitude'] ?? null);
             $livraison->setLatitude($record['latitude'] ?? null);
+            $livraison->setStatut('En attente');
 
 
             

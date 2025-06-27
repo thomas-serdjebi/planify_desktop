@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Récapitulatif des tournées{% endblock %}
+
+{% block body %}
+<h1>Récapitulatif des tournées créées</h1>
+
+{% for tournee in tournees %}
+    <div class="card mb-3">
+        <div class="card-header">
+            Tournée du {{ tournee.date|date('d/m/Y') }} - {{ tournee.creneau }}
+        </div>
+        <div class="card-body">
+            <p><strong>Distance totale :</strong> {{ tournee.distance }} km</p>
+            <p><strong>Durée totale :</strong> {{ (tournee.duree / 60)|round(1) }} minutes</p>
+            <p><strong>Statut :</strong> {{ tournee.statut }}</p>
+            
+            <h5>Livraisons :</h5>
+            <ul>
+                {% for trajet in tournee.trajets %}
+                    <li>Livraison n°{{ trajet.ordre }} - {{ trajet.livraison.adresse }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endfor %}
+
+<a href="{{ path('app_tournees_create') }}" class="btn btn-primary">Créer de nouvelles tournées</a>
+{% endblock %}
