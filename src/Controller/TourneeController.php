@@ -362,7 +362,13 @@ class TourneeController extends AbstractController
     #[Route('/api/tournees/{id}/livraisons', name: 'tournee_livraisons', methods: ['GET'])]
     public function getTourneeLivraisons(EntityManagerInterface $entityManager, int $id): JsonResponse
     {
-        $tournee = $entityManager->getRepository(Tournee::class)->find($id);
+         $tournee = $entityManager->getRepository(Tournee::class)->createQueryBuilder('t')
+            ->leftJoin('t.livraisons', 'l')
+            ->addSelect('l')
+            ->where('t.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
 
         if (!$tournee) {
             return new JsonResponse(['error' => 'Tournee not found'], 404);
@@ -371,6 +377,44 @@ class TourneeController extends AbstractController
         return new JsonResponse($this->normalizeTournees([$tournee])[0]);
     }
 
+    
+    #[Route('/api/tournees/{id}', name: 'update_tournee', methods: ['PATCH'])]
+    public function updateTournee(EntityManagerInterface $entityManager, Request $request, int $id): JsonResponse
+    {
+        // 🔥 DEBUG : Voir si la requête contient bien du JSON
+        dump($request->headers->all()); // Affiche les headers
+        dump($request->getContent()); // Affiche le JSON brut
+        die(); // Stoppe l'exécution ici
+    
+        $tournee = $entityManager->getRepository(Tournee::class)->find($id);
+    
+        if (!$tournee) {
+            return new JsonResponse(['error' => 'Tournee non trouvée'], 404);
+        }
+    
+        $data = json_decode($request->getContent(), true);
+    
+        if (!$data) {
+            return new JsonResponse(['error' => 'JSON invalide'], 400);
+        }
+    
+        if (isset($data['statut'])) {
+            $tournee->setStatut($data['statut']);
+        }
+    
+        $entityManager->persist($tournee);
+        $entityManager->flush();
+    
+        return new JsonResponse([
+            'message' => 'Tournée mise à jour avec succès.',
+            'tournee' => [
+                'id' => $tournee->getId(),
+                'statut' => $tournee->getStatut()
+            ]
+        ]);
+    }
+    
+
 
     private function normalizeTournees(array $tournees): array
     {
@@ -378,7 +422,7 @@ class TourneeController extends AbstractController
             return [
                 'id' => $tournee->getId(),
                 'date' => $tournee->getDate()?->format('Y-m-d'),
-                'duree' => $tournee->getDuree()?->format('H:i:s'),
+                'duree' => gmdate('H:i:s', $tournee->getDuree() * 60),
                 'distance' => $tournee->getDistance(),
                 'statut' => $tournee->getStatut(),
                 'livreur_id' => $tournee->getLivreur()?->getId(),
